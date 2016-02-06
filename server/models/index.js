@@ -18,14 +18,14 @@ module.exports = {
       var username = body.username;
       var roomname = body.roomname;
       var text = body.text;
-      var userQuery = "INSERT IGNORE INTO users (name) VALUES ('" + username + "')";
-      var roomQuery ="INSERT IGNORE INTO rooms (name) VALUES ('" + roomname + "')";
-      var messageQuery = "INSERT INTO messages (text, user_id, room_id) VALUES ('" + text + "', (SELECT id FROM users WHERE name = '" + username + "'), (SELECT id FROM rooms WHERE name = '" + roomname + "') )";
-      db.query( userQuery, function( err ) {
+      var userQuery = "INSERT IGNORE INTO users (name) VALUES (?)";
+      var roomQuery ="INSERT IGNORE INTO rooms (name) VALUES (?)";
+      var messageQuery = "INSERT INTO messages (text, user_id, room_id) VALUES (?, (SELECT id FROM users WHERE name = ?), (SELECT id FROM rooms WHERE name = ?) )";
+      db.query( userQuery, [username], function( err ) {
         if( err ) throw new Error( err, 'Error in /classes/messages POST' );
-        db.query( roomQuery, function( err ) {
+        db.query( roomQuery, [roomname], function( err ) {
           if( err ) throw new Error( err, 'Error in /classes/messages POST room query');
-          db.query( messageQuery, function( err ) {
+          db.query( messageQuery, [text, username, roomname], function( err ) {
             if( err ) throw new Error( err, 'Error in /classes/messages POST message query');
           } );
         } );
@@ -46,9 +46,12 @@ module.exports = {
         callback( JSON.stringify( results ) );
       } );
     },
-    post: function ( callback ) {
-      var query = "INSERT IGNORE INTO users (name) VALUES ('?')";
-
+    post: function ( body ) {
+      var username = body.username;
+      var query = "INSERT IGNORE INTO users (name) VALUES ('" + username + "')";
+      db.query( query, function( err ) {
+        if( err ) throw new Error( err, 'Error in /classes/users POST' );
+      } );
     }
   },
 
@@ -64,8 +67,12 @@ module.exports = {
         callback( JSON.stringify( results ) );
       } );
     },
-    post: function( callback ) {
+    post: function( body ) {
+      var roomname = body.roomname;
       var query = "INSERT IGNORE INTO rooms (name) VALUES ('" + roomname + "')";
+      db.query( query, function( err ) {
+        if( err ) throw new Error( err, 'Error in /classes/rooms POST' );
+      } );    
     }
   }
 };

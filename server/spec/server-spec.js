@@ -67,24 +67,34 @@ describe('Persistent Node Chat Server', function() {
 
   it('Should output all messages from the DB', function(done) {
     // Let's insert a message into the db
-      var queryString = "INSERT IGNORE INTO users (name) VALUES (?); INSERT IGNORE INTO rooms (name) VALUES (?); INSERT INTO messages (text, user_id, room_id) VALUES ('Men like you can never change!', (SELECT id FROM users WHERE name = ?), (SELECT id FROM rooms WHERE name = ?) )";
-      var queryArgs = ['Javert', 'main', 'Javert', 'main'];
+      var userQuery = "INSERT IGNORE INTO users (name) VALUES (?)";
+      var roomQuery = "INSERT IGNORE INTO rooms (name) VALUES (?)";
+      var messageQuery = "INSERT INTO messages (text, user_id, room_id) VALUES (?, (SELECT id FROM users WHERE name = ?), (SELECT id FROM rooms WHERE name = ?) )";
+      var userArgs = ['Javert'];
+      var roomArgs = ['main'];
+      var messageArgs = ['Men like you can never change!', 'Javert', 'main'];
     // TODO - The exact query string and query args to use
     // here depend on the schema you design, so I'll leave
     // them up to you. */
 
-    dbConnection.query(queryString, queryArgs, function(err) {
+    dbConnection.query(userQuery, userArgs, function(err) {
       if (err) { throw err; }
+      dbConnection.query(roomQuery, roomArgs, function(err){
+        if (err) {throw err; }
+        dbConnection.query(messageQuery, messageArgs, function(err) {
+          if (err) {throw err; }
+          request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
+            var messageLog = JSON.parse(body);
+            expect(messageLog[0].username).to.equal('Javert');
+            expect(messageLog[0].text).to.equal('Men like you can never change!');
+            expect(messageLog[0].roomname).to.equal('main');
+            done();
+          });
+        });
+      });
+    });
 
       // Now query the Node chat server and see if it returns
       // the message we just inserted:
-      request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
-        var messageLog = JSON.parse(body);
-        expect(messageLog[0].username).to.equal('Javert');
-        expect(messageLog[0].text).to.equal('Men like you can never change!');
-        expect(messageLog[0].roomname).to.equal('main');
-        done();
-      });
-    });
   });
 });
