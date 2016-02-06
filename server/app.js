@@ -20,9 +20,12 @@ app.use(parser.json());
 
 // Set up our routes
 app.use('/classes', router);
+// localhost:3000/classes/messages
+// localhost:3000/classes/rooms
+// localhost:3000/classes/users
 
 // Serve the client files
-app.use(express.static(__dirname + '/../client'));
+app.use(express.static(__dirname + '/../client/client'));
 
 // If we are being run directly, run the server.
 if (!module.parent) {
