@@ -13,9 +13,23 @@ module.exports = {
         callback( JSON.stringify( results ) );
       } );
     }, // a function which produces all the messages
-    post: function ( data, callback ) {
-
-      var query = "INSERT IGNORE INTO users (name) VALUES ('" + username + "'); INSERT IGNORE INTO rooms (name) VALUES ('" + roomname + "'); INSERT INTO messages (text, user_id, room_id) VALUES ('" + text + "', (SELECT id FROM users WHERE name = '" + username + "'), (SELECT id FROM rooms WHERE name = '" + roomname + "') )";
+    post: function ( body ) {
+      console.log( 'message post body : ', body );
+      var username = body.username;
+      var roomname = body.roomname;
+      var text = body.text;
+      var userQuery = "INSERT IGNORE INTO users (name) VALUES ('" + username + "')";
+      var roomQuery ="INSERT IGNORE INTO rooms (name) VALUES ('" + roomname + "')";
+      var messageQuery = "INSERT INTO messages (text, user_id, room_id) VALUES ('" + text + "', (SELECT id FROM users WHERE name = '" + username + "'), (SELECT id FROM rooms WHERE name = '" + roomname + "') )";
+      db.query( userQuery, function( err ) {
+        if( err ) throw new Error( err, 'Error in /classes/messages POST' );
+        db.query( roomQuery, function( err ) {
+          if( err ) throw new Error( err, 'Error in /classes/messages POST room query');
+          db.query( messageQuery, function( err ) {
+            if( err ) throw new Error( err, 'Error in /classes/messages POST message query');
+          } );
+        } );
+       } );
     } // a function which can be used to insert a message into the database
   },
 
@@ -33,7 +47,8 @@ module.exports = {
       } );
     },
     post: function ( callback ) {
-      var query = "INSERT IGNORE INTO users (name) VALUES ('" + username + "')";
+      var query = "INSERT IGNORE INTO users (name) VALUES ('?')";
+
     }
   },
 

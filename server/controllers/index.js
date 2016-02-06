@@ -1,5 +1,4 @@
 var models = require('../models');
-var app = require( '../app' );
 
 module.exports = {
   messages: {
@@ -8,11 +7,10 @@ module.exports = {
         res.send( results );
       });
     }, // a function which handles a get request for all messages
-    post: app.app.post( 'handle', function( request, response ) { 
-      var body = request.body;
-      console.log( body );
-      response.send();
-    } ) // a function which handles posting a message to the database
+    post: function( req, res ) {
+      models.messages.post( req.body );
+      res.send( req.body );
+    } // a function which handles posting a message to the database
   },
 
   users: {
@@ -23,10 +21,10 @@ module.exports = {
         res.send( results );
       });
     },
-    post: app.app.post( 'handle', function( request, response ) { 
-      var body = request.body;
-      response.send();
-    } )
+    post: function( req, res ) {
+      models.users.post( req.body );
+      res.send( );
+    }
   },
 
   rooms: {
@@ -36,10 +34,9 @@ module.exports = {
         res.send( results );
       });
     },
-    post: app.app.post( 'handle', function( request, response ) { 
-      var body = request.body;
-      console.log( body );
-      response.send();
-    } )
+    post: function( req, res ) {
+      models.rooms.post( req.body );
+      res.send( );
+    }
   }
 };

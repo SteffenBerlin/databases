@@ -11,7 +11,6 @@ describe('Persistent Node Chat Server', function() {
   beforeEach(function(done) {
     dbConnection = mysql.createConnection({
       user: 'root',
-      password: 'abc',
       database: 'chat'
     });
     dbConnection.connect();
@@ -68,8 +67,8 @@ describe('Persistent Node Chat Server', function() {
 
   it('Should output all messages from the DB', function(done) {
     // Let's insert a message into the db
-      var queryString = "INSERT IGNORE INTO users (name) VALUES ('Javert'); INSERT IGNORE INTO rooms (name) VALUES ('main'); INSERT INTO messages (text, user_id, room_id) VALUES ('Men like you can never change!', (SELECT id FROM users WHERE name = 'Javert'), (SELECT id FROM rooms WHERE name = 'main') )";
-      var queryArgs = [];
+      var queryString = "INSERT IGNORE INTO users (name) VALUES (?); INSERT IGNORE INTO rooms (name) VALUES (?); INSERT INTO messages (text, user_id, room_id) VALUES ('Men like you can never change!', (SELECT id FROM users WHERE name = ?), (SELECT id FROM rooms WHERE name = ?) )";
+      var queryArgs = ['Javert', 'main', 'Javert', 'main'];
     // TODO - The exact query string and query args to use
     // here depend on the schema you design, so I'll leave
     // them up to you. */
