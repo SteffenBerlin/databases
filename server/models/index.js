@@ -6,33 +6,40 @@ var Message = db.Message;
 module.exports = {
   messages: {
     get: function ( callback ) {
-      // do MySQL query
-      var query = "SELECT m.id objectId, m.text, m.createdAt, u.name username, r.name roomname FROM messages m INNER JOIN rooms r ON m.room_id = r.id INNER JOIN users u ON m.user_id = u.id";
-      // send query to db
-      db.query( query, function( err, results ) {
-        if( err ) throw new Error( err, 'Error in /classes/messages GET' );
-        // turn data into object with proper names
-        // return stringified json
-        callback( JSON.stringify( results ) );
+      Message.findAll({
+        include: [{ model: User }, { model: Room }]
+      }).then( function( messages ) {
+        callback( JSON.stringify( messages ) );  
+      },
+      function( err ) { 
+        console.log( err );
       } );
     }, // a function which produces all the messages
     post: function ( body ) {
-      console.log( 'message post body : ', body );
-      var username = body.username;
-      var roomname = body.roomname;
-      var text = body.text;
-      var userQuery = "INSERT IGNORE INTO users (name) VALUES (?)";
-      var roomQuery ="INSERT IGNORE INTO rooms (name) VALUES (?)";
-      var messageQuery = "INSERT INTO messages (text, user_id, room_id) VALUES (?, (SELECT id FROM users WHERE name = ?), (SELECT id FROM rooms WHERE name = ?) )";
-      db.query( userQuery, [username], function( err ) {
-        if( err ) throw new Error( err, 'Error in /classes/messages POST' );
-        db.query( roomQuery, [roomname], function( err ) {
-          if( err ) throw new Error( err, 'Error in /classes/messages POST room query');
-          db.query( messageQuery, [text, username, roomname], function( err ) {
-            if( err ) throw new Error( err, 'Error in /classes/messages POST message query');
-          } );
+      // find or create user, save ID
+      User.findOrCreate( { where: { username: body.username } })
+      .spread( function( user ) {
+        var userId = user.id;
+        // find or create room, save ID
+        Room.findOrCreate({where: {roomname: body.roomname}})
+        .spread( function( room ) { 
+          var roomId = room.id;
+          // create message with IDs
+          var params = {
+            text: body.text,
+            user_id: userId,
+            room_id: roomId
+          };
+          var newMessage = Message.build( params );
+          newMessage.save().then(function(){
+            console.log('saved message successfully', body);
+          },
+          function(err){
+            console.log(err);
+          }
+          );
         } );
-       } );
+      });
     } // a function which can be used to insert a message into the database
   },
 
