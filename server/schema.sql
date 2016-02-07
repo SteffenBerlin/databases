@@ -10,6 +10,7 @@ CREATE TABLE `messages` (
   `user_id` INTEGER NULL DEFAULT NULL,
   `room_id` INTEGER NULL DEFAULT NULL,
   `createdAt` TIMESTAMP NULL DEFAULT NULL,
+  
   PRIMARY KEY (`id`)
 );
 

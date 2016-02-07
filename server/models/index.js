@@ -1,4 +1,7 @@
 var db = require('../db');
+var User = db.User;
+var Room = db.Room;
+var Message = db.Message;
 
 module.exports = {
   messages: {
@@ -37,42 +40,43 @@ module.exports = {
     // Ditto as above.
     get: function ( callback ) {
       // do MySQL query
-      var query = "SELECT id, name username FROM users";
-      // send query to db
-      db.query( query, function( err, results ) {
-        if( err ) throw new Error( err, 'Error in /classes/users GET' );
-        // turn data into object with proper names
-        // return stringified json
-        callback( JSON.stringify( results ) );
+      User.findAll().then( function (users) {
+        callback( JSON.stringify( users ) );
+      }, function( err ) { 
+        console.log( err );
       } );
     },
     post: function ( body ) {
-      var username = body.username;
-      var query = "INSERT IGNORE INTO users (name) VALUES ('" + username + "')";
-      db.query( query, function( err ) {
-        if( err ) throw new Error( err, 'Error in /classes/users POST' );
-      } );
+      //body.username
+      var newUser = User.build( body );
+      newUser.save().then(function() {
+          console.log('Insert ' + body.username + ' into users table. (yaaayyyyyyy)');
+        },
+        function(err) {
+          console.log('This is the users post error:', err);
+        }
+      );
     }
   },
 
   rooms: {
     get: function( callback ) {
       // do MySQL query
-      var query = "SELECT id, name roomname FROM rooms";
-      // send query to db
-      db.query( query, function( err, results ) {
-        if( err ) throw new Error( err, 'Error in /classes/rooms GET' );
-        // turn data into object with proper names
-        // return stringified json
-        callback( JSON.stringify( results ) );
+      Room.findAll().then( function ( rooms ) {
+        callback( JSON.stringify( rooms ) );
+      }, function( err ) { 
+        console.log( err );
       } );
     },
     post: function( body ) {
-      var roomname = body.roomname;
-      var query = "INSERT IGNORE INTO rooms (name) VALUES ('" + roomname + "')";
-      db.query( query, function( err ) {
-        if( err ) throw new Error( err, 'Error in /classes/rooms POST' );
-      } );    
+      var newRoom = Room.build( body );
+      newRoom.save().then(function() {
+          console.log('Insert ' + body.roomname + ' into rooms table. (yaaayyyyyyy)');
+        },
+        function(err) {
+          console.log('This is the rooms POST error:', err);
+        }
+      );  
     }
   }
 };
